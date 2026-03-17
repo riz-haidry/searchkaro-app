@@ -1,15 +1,18 @@
 const mongoose = require('mongoose');
-
 const LegalPolicy = require('./models/LegalPolicy'); 
 
-mongoose.connect("mongodb://127.0.0.1:27017/searchkaro")
+// MONGO_URI variable use karenge taaki Render par Atlas se connect ho sake
+// Aur local par chalane ke liye backup mein localhost rakha hai
+const dbURI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/searchkaro";
+
+mongoose.connect(dbURI)
   .then(async () => {
-    console.log("Database connected for seeding...");
+    console.log("🚀 Database connected for seeding...");
     
-    
+    // Purana data delete karein taaki duplication na ho
     await LegalPolicy.deleteMany({}); 
 
-    
+    // Naya data insert karein
     await LegalPolicy.create([
       { 
         question: "Privacy Policy", 
@@ -28,4 +31,7 @@ mongoose.connect("mongodb://127.0.0.1:27017/searchkaro")
     console.log("✅ Policies successfully upload ho gayi hain!");
     process.exit();
   })
-  .catch(err => console.log("❌ Seed Error:", err));
+  .catch(err => {
+    console.log("❌ Seed Error:", err);
+    process.exit(1);
+  });
