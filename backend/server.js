@@ -18,8 +18,9 @@ const app = express();
 // --- MIDDLEWARES ---
 app.use(express.json());
 app.use(cookieParser());
+
 app.use(cors({
-    origin: "http://localhost:5173", 
+    origin: process.env.FRONTEND_URL || "http://localhost:5173", 
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"]
 }));
@@ -30,6 +31,7 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected Successfully!"))
   .catch(err => console.error("❌ DB Connection Error:", err));
 
+  app.get('/', (req, res) => res.send("SearchKaro API is running live!"));
 // --- AUTH ROUTES ---
 app.post('/api/signup', async (req, res) => {
     try {
@@ -51,9 +53,13 @@ app.post('/api/login', async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials!" });
         
-        const token = jwt.sign({ id: user._id }, "SECRET_KEY_123", { expiresIn: '24h' });
-        res.cookie('token', token, { httpOnly: false, maxAge: 24 * 60 * 60 * 1000 });
-        
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "nagpur_secret_key", { expiresIn: '24h' });
+        res.cookie('token', token, { 
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === "production", 
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+            maxAge: 24 * 60 * 60 * 1000 
+        });
         
         res.json({ 
             token, 
@@ -65,6 +71,7 @@ app.post('/api/login', async (req, res) => {
         });
     } catch (err) { res.status(500).json({ message: "Login error" }); }
 });
+
 
 // --- DYNAMIC DATA ROUTES ---
 
