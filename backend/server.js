@@ -19,10 +19,22 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+// Ab hum sirf environment variable se hi origin uthayenge
+const frontendURL = process.env.FRONTEND_URL;
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173", 
+    origin: function (origin, callback) {
+        // Agar origin aapke Vercel URL se match karta hai, toh allow karo
+        // (!origin sirf Postman ya server-to-server calls ke liye rakha hai)
+        if (!origin || origin === frontendURL) {
+            callback(null, true);
+        } else {
+            // Agar koi aur website aapka data churaney ki koshish karegi, toh Nagpur Secure Server block kar dega
+            callback(new Error("CORS Error: Unauthorized Access Blocked by SearchKaro Security"));
+        }
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
 
 // --- DATABASE CONNECTION ---
