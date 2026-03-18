@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // --- CONFIGURATION ---
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://searchkaro-app.onrender.com";
 
 const api = axios.create({
   baseURL: BASE_URL,
